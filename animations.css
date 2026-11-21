@@ -90,3 +90,58 @@ body { overflow-x: hidden; }
   *,*::before,*::after { animation-duration:.01ms!important; animation-iteration-count:1!important; scroll-behavior:auto!important; transition-duration:.01ms!important; }
   [data-reveal] { opacity:1; transform:none; }
 }
+/* Refined branding, contact page, animated action buttons */
+.logo { display:inline-flex; align-items:center; gap:10px; white-space:nowrap; }
+.logo .brand-mark { width:38px; height:38px; flex:none; object-fit:contain; transition: transform .5s cubic-bezier(.2,.8,.2,1); }
+.logo:hover .brand-mark { transform: rotate(-8deg) scale(1.08); }
+footer .logo .brand-mark { filter:brightness(1.7); }
+.contact-section { padding-top:clamp(66px,8vw,112px); padding-bottom:clamp(70px,8vw,110px); }
+.contact-intro { margin-bottom:42px; max-width:790px; }
+.contact-intro h1 { font-size:clamp(42px,6.2vw,78px); letter-spacing:-.045em; line-height:1.06; margin:0 0 22px; }
+.contact-intro h1 em, .contact-card h2 em, .contact-aside h2 em { font-family:var(--serif); font-weight:400; color:var(--terra); }
+.contact-intro .lead { max-width:680px; font-size:clamp(17px,1.7vw,20px); }
+.contact-layout { display:grid; grid-template-columns:minmax(0,1.35fr) minmax(300px,.8fr); align-items:stretch; gap:25px; }
+.contact-card { background:white; padding:clamp(25px,3.4vw,48px); border:1px solid var(--line); border-radius:28px; }
+.contact-card h2 { font-size:clamp(29px,3.4vw,44px); line-height:1.08; margin-bottom:28px; }
+.contact-card .form { max-width:none; }
+.contact-card .form input,.contact-card .form select,.contact-card .form textarea { width:100%; min-width:0; transition:border-color .2s ease,box-shadow .2s ease; }
+.contact-card .form :is(input,select,textarea):focus { outline:none; border-color:var(--terra); box-shadow:0 0 0 4px rgba(180,83,42,.12); }
+.contact-card textarea { resize:vertical; }
+.contact-card .form button { justify-self:start; }
+.contact-aside { background:var(--green); color:var(--cream); padding:clamp(25px,3.5vw,44px); border-radius:28px; display:flex; flex-direction:column; align-items:flex-start; }
+.contact-aside-art { align-self:stretch; height:210px; border-radius:18px; display:grid; place-items:center; margin-bottom:32px; background:radial-gradient(circle at 50% 35%,#759083,#304e42 72%); overflow:hidden; }
+.contact-aside-art img { width:min(230px,80%); height:100%; object-fit:contain; animation:floatGentle 6s ease-in-out infinite; filter:drop-shadow(0 15px 16px rgba(0,0,0,.24)); }
+.contact-aside .eyebrow { color:#c6d8c6; }
+.contact-aside .eyebrow::before { border-color:#c6d8c6; }
+.contact-aside h2 { font-size:clamp(29px,3vw,45px); line-height:1.1; }
+.contact-aside h2 em { color:#e9a27f; }
+.contact-aside p:not(.eyebrow) { color:#e1e6dc; }
+.contact-aside .btn { border-color:#e6dfd4; color:#fff; }
+.contact-aside small { font-size:12px; line-height:1.55; opacity:.75; margin-top:auto; padding-top:32px; }
+.btn, .filters button, .mobile-menu-button { position:relative; isolation:isolate; overflow:hidden; }
+.btn::before,.filters button::before,.mobile-menu-button::before {
+  content:""; position:absolute; inset:0; border-radius:inherit; z-index:-1;
+  background:linear-gradient(110deg,transparent 10%,rgba(255,255,255,.25) 45%,transparent 76%);
+  transform:translateX(-140%) skewX(-15deg);
+  transition:transform .75s cubic-bezier(.18,.73,.23,1);
+}
+.btn:hover::before,.filters button:hover::before,.mobile-menu-button:hover::before { transform:translateX(140%) skewX(-15deg); }
+.btn:focus-visible,.filters button:focus-visible,.mobile-menu-button:focus-visible { outline:3px solid var(--terra); outline-offset:4px; }
+.btn-terra:hover { box-shadow:0 9px 24px rgba(180,83,42,.28),0 0 0 3px rgba(180,83,42,.12); }
+.btn-dark:hover { box-shadow:0 9px 23px rgba(36,61,53,.23); }
+.btn-ghost:hover { background:rgba(180,83,42,.07); }
+@media(max-width:900px) {
+ .contact-layout { grid-template-columns:1fr; }
+ .contact-aside { min-height:0; }
+ .contact-aside-art { height:170px; }
+ .contact-aside small { margin-top:12px; padding-top:16px; }
+}
+@media(max-width:600px) {
+ .contact-section { padding-top:50px; }
+ .contact-card,.contact-aside { padding:24px; }
+ .logo .brand-mark { width:32px; height:32px; }
+ .contact-intro { margin-bottom:24px; }
+}
+@media(prefers-reduced-motion:reduce) {
+ .contact-aside-art img { animation:none; }
+}
