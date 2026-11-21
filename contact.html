@@ -1,0 +1,81 @@
+<!doctype html>
+<html lang="fr">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <title>Contact — Atelier Ourlet (démo)</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700;800&family=Instrument+Serif:ital@0;1&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="style.css">
+  <link rel="stylesheet" href="chat-widget.css">
+</head>
+<body>
+  <div class="demo-bar">Site de démonstration : Atelier Ourlet est une marque fictive.</div>
+
+  <nav class="nav">
+    <div class="wrap">
+      <a class="logo" href="index.html">Atelier <em>Ourlet</em></a>
+      <ul>
+        <li><a href="boutique.html">Boutique</a></li>
+        <li><a href="index.html#personnalisations">Personnalisations</a></li>
+        <li><a href="index.html#entreprises">Entreprises</a></li>
+        <li><a href="contact.html" aria-current="page">Contact</a></li>
+      </ul>
+      <a class="cart" href="boutique.html">Panier · 0</a>
+    </div>
+  </nav>
+
+  <main>
+    <section>
+      <div class="wrap">
+        <p class="eyebrow">Contact</p>
+        <h2 style="margin-bottom:14px">Parlons de <em>votre projet.</em></h2>
+        <p class="lead" style="margin-bottom:36px">Le plus rapide : <a href="#" data-open-chat><strong>l'assistant en ligne</strong></a> répond tout de suite. Sinon, laissez-nous un message.</p>
+
+        <form class="form" id="contact-form">
+          <div class="row">
+            <label>Nom<input name="nom" required></label>
+            <label>Email<input name="email" type="email" required></label>
+          </div>
+          <label>Sujet
+            <select name="sujet">
+              <option>Commande personnelle</option>
+              <option>Commande pour une équipe / entreprise</option>
+              <option>Question sur une commande</option>
+              <option>Autre</option>
+            </select>
+          </label>
+          <label>Message<textarea name="message" rows="6" required></textarea></label>
+          <div><button class="btn btn-terra" type="submit">Envoyer →</button></div>
+          <p class="notice" id="contact-ok" hidden>Merci ! Site de démonstration : votre message n'a pas été envoyé.</p>
+        </form>
+      </div>
+    </section>
+  </main>
+
+  <footer>
+    <div class="wrap">
+      <div class="cols">
+        <div>
+          <a class="logo" href="index.html">Atelier <em>Ourlet</em></a>
+          <p>Vêtements brodés sur mesure. Marque fictive créée pour une démonstration d'assistant IA.</p>
+        </div>
+        <div><h4>Boutique</h4><ul><li><a href="boutique.html">Tous les produits</a></li><li><a href="index.html#personnalisations">Personnalisations</a></li><li><a href="index.html#entreprises">Entreprises</a></li></ul></div>
+        <div><h4>Aide</h4><ul><li><a href="contact.html">Contact</a></li><li><a href="#" data-open-chat>Assistant en ligne</a></li></ul></div>
+      </div>
+      <p class="small">© Atelier Ourlet — site de démonstration, aucune commande réelle n'est possible.</p>
+    </div>
+  </footer>
+
+  <script src="garments.js"></script>
+  <script src="chat-widget.js"></script>
+  <script>
+    document.getElementById('contact-form').addEventListener('submit', e => {
+      e.preventDefault();
+      e.target.reset();
+      document.getElementById('contact-ok').hidden = false;
+    });
+  </script>
+</body>
+</html>

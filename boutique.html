@@ -1,0 +1,113 @@
+<!doctype html>
+<html lang="fr">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <title>Boutique — Atelier Ourlet (démo)</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700;800&family=Instrument+Serif:ital@0;1&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="style.css">
+  <link rel="stylesheet" href="chat-widget.css">
+</head>
+<body>
+  <div class="demo-bar">Site de démonstration : Atelier Ourlet est une marque fictive.</div>
+
+  <nav class="nav">
+    <div class="wrap">
+      <a class="logo" href="index.html">Atelier <em>Ourlet</em></a>
+      <ul>
+        <li><a href="boutique.html" aria-current="page">Boutique</a></li>
+        <li><a href="index.html#personnalisations">Personnalisations</a></li>
+        <li><a href="index.html#entreprises">Entreprises</a></li>
+        <li><a href="contact.html">Contact</a></li>
+      </ul>
+      <a class="cart" href="boutique.html">Panier · <span id="cart-count">0</span></a>
+    </div>
+  </nav>
+
+  <main>
+    <section>
+      <div class="wrap">
+        <div class="section-head">
+          <div>
+            <p class="eyebrow">Boutique</p>
+            <h2>Choisissez votre <em>vêtement.</em></h2>
+            <p class="lead">Tous les prix incluent une broderie (prénom, motif ou logo). La maquette est gratuite.</p>
+          </div>
+        </div>
+
+        <div class="filters" role="group" aria-label="Filtrer les produits">
+          <button type="button" aria-pressed="true" data-filter="all">Tout</button>
+          <button type="button" aria-pressed="false" data-filter="haut">Hauts</button>
+          <button type="button" aria-pressed="false" data-filter="accessoire">Accessoires</button>
+        </div>
+
+        <div class="grid" id="products">
+          <article class="card" data-cat="haut">
+            <div class="art"><div class="g" data-type="tshirt" data-color="#f0e4cf" data-motif="Noé"></div></div>
+            <div class="body"><h3>T-shirt brodé</h3><p>Coton bio 180 g, coupe droite.</p><div class="price"><span>29 €</span><button class="btn btn-dark add" style="padding:10px 16px;font-size:14px" type="button">Ajouter</button></div></div>
+          </article>
+          <article class="card" data-cat="haut">
+            <div class="art"><div class="g" data-type="sweat" data-color="#c7c9c4" data-motif="Léa"></div></div>
+            <div class="body"><h3>Sweat brodé</h3><p>Molleton gratté, doux et chaud.</p><div class="price"><span>49 €</span><button class="btn btn-dark add" style="padding:10px 16px;font-size:14px" type="button">Ajouter</button></div></div>
+          </article>
+          <article class="card" data-cat="haut">
+            <div class="art"><div class="g" data-type="hoodie" data-color="#2f5045" data-motif="♥" data-thread="#e9a27f"></div></div>
+            <div class="body"><h3>Hoodie brodé</h3><p>Capuche doublée, poche kangourou.</p><div class="price"><span>59 €</span><button class="btn btn-dark add" style="padding:10px 16px;font-size:14px" type="button">Ajouter</button></div></div>
+          </article>
+          <article class="card" data-cat="accessoire">
+            <div class="art"><div class="g" data-type="cap" data-color="#b4532a" data-motif="★" data-thread="#f6f1e9"></div></div>
+            <div class="body"><h3>Casquette brodée</h3><p>Sergé de coton, attache réglable.</p><div class="price"><span>25 €</span><button class="btn btn-dark add" style="padding:10px 16px;font-size:14px" type="button">Ajouter</button></div></div>
+          </article>
+          <article class="card" data-cat="accessoire">
+            <div class="art"><div class="g" data-type="tote" data-color="#e6d6b8" data-motif="logo" data-thread="#243d35"></div></div>
+            <div class="body"><h3>Tote bag brodé</h3><p>Toile épaisse, anses longues.</p><div class="price"><span>19 €</span><button class="btn btn-dark add" style="padding:10px 16px;font-size:14px" type="button">Ajouter</button></div></div>
+          </article>
+          <article class="card" data-cat="accessoire">
+            <div class="art"><div class="g" data-type="apron" data-color="#7d9b82" data-motif="Chef" data-thread="#f6f1e9"></div></div>
+            <div class="body"><h3>Tablier brodé</h3><p>Pour la cuisine, l'atelier ou le restaurant.</p><div class="price"><span>35 €</span><button class="btn btn-dark add" style="padding:10px 16px;font-size:14px" type="button">Ajouter</button></div></div>
+          </article>
+        </div>
+
+        <p class="notice" style="margin-top:36px">Une commande pour une équipe ou une entreprise ? <a href="#" data-open-chat><strong>Demandez un devis à l'assistant</strong></a> : il prépare votre demande en deux minutes.</p>
+      </div>
+    </section>
+  </main>
+
+  <footer>
+    <div class="wrap">
+      <div class="cols">
+        <div>
+          <a class="logo" href="index.html">Atelier <em>Ourlet</em></a>
+          <p>Vêtements brodés sur mesure. Marque fictive créée pour une démonstration d'assistant IA.</p>
+        </div>
+        <div><h4>Boutique</h4><ul><li><a href="boutique.html">Tous les produits</a></li><li><a href="index.html#personnalisations">Personnalisations</a></li><li><a href="index.html#entreprises">Entreprises</a></li></ul></div>
+        <div><h4>Aide</h4><ul><li><a href="contact.html">Contact</a></li><li><a href="#" data-open-chat>Assistant en ligne</a></li></ul></div>
+      </div>
+      <p class="small">© Atelier Ourlet — site de démonstration, aucune commande réelle n'est possible.</p>
+    </div>
+  </footer>
+
+  <script src="garments.js"></script>
+  <script src="chat-widget.js"></script>
+  <script>
+    // Filtres
+    const buttons = document.querySelectorAll('.filters button');
+    buttons.forEach(b => b.addEventListener('click', () => {
+      buttons.forEach(x => x.setAttribute('aria-pressed', String(x === b)));
+      document.querySelectorAll('#products .card').forEach(c => {
+        c.hidden = b.dataset.filter !== 'all' && c.dataset.cat !== b.dataset.filter;
+      });
+    }));
+    // Panier (démo)
+    let count = 0;
+    document.querySelectorAll('.add').forEach(btn => btn.addEventListener('click', () => {
+      count++;
+      document.getElementById('cart-count').textContent = count;
+      btn.textContent = 'Ajouté ✓';
+      setTimeout(() => (btn.textContent = 'Ajouter'), 1200);
+    }));
+  </script>
+</body>
+</html>
