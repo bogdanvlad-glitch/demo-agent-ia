@@ -3,6 +3,7 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <link rel="icon" type="image/svg+xml" href="logo-sweat.svg">
   <title>Contact — Atelier Ourlet (démo)</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -16,7 +17,7 @@
 
   <nav class="nav">
     <div class="wrap">
-      <a class="logo" href="index.html">Atelier <em>Ourlet</em></a>
+      <a class="logo" href="index.html"><img class="brand-mark" src="logo-sweat.svg" alt="" aria-hidden="true"> <span>Atelier <em>Ourlet</em></span></a>
       <ul>
         <li><a href="boutique.html">Boutique</a></li>
         <li><a href="personnalisations.html">Personnalisations</a></li>
@@ -28,30 +29,45 @@
     </div>
   </nav>
 
-  <main>
-    <section>
+  <main class="contact-page">
+    <section class="contact-section">
       <div class="wrap">
-        <p class="eyebrow">Contact</p>
-        <h2 style="margin-bottom:14px">Parlons de <em>votre projet.</em></h2>
-        <p class="lead" style="margin-bottom:36px">Le plus rapide : <a href="#" data-open-chat><strong>l'assistant en ligne</strong></a> répond tout de suite. Sinon, laissez-nous un message.</p>
-
-        <form class="form" id="contact-form">
-          <div class="row">
-            <label>Nom<input name="nom" required></label>
-            <label>Email<input name="email" type="email" required></label>
+        <div class="contact-intro">
+          <p class="eyebrow">Nous contacter</p>
+          <h1>Parlons de <em>votre projet.</em></h1>
+          <p class="lead">Une idée de broderie, une commande d'équipe, une simple question ? Nous sommes là pour vous guider.</p>
+        </div>
+        <div class="contact-layout">
+          <div class="contact-card" data-reveal>
+            <p class="eyebrow">Votre message</p>
+            <h2>Racontez-nous <em>votre idée.</em></h2>
+            <form class="form" id="contact-form">
+              <div class="row">
+                <label>Votre nom<input name="nom" autocomplete="name" placeholder="Camille Dupont" required></label>
+                <label>Votre e-mail<input name="email" type="email" autocomplete="email" placeholder="camille@exemple.fr" required></label>
+              </div>
+              <label>Votre projet
+                <select name="sujet">
+                  <option>Commande personnelle</option>
+                  <option>Commande pour une équipe / entreprise</option>
+                  <option>Question sur une commande</option>
+                  <option>Autre</option>
+                </select>
+              </label>
+              <label>Quelques détails<textarea name="message" rows="5" placeholder="Dites-nous ce que vous aimeriez broder…" required></textarea></label>
+              <button class="btn btn-terra" type="submit">Envoyer le message →</button>
+              <p class="notice" id="contact-ok" role="status" hidden>Merci ! Ceci est une démonstration : votre message n'a pas été envoyé.</p>
+            </form>
           </div>
-          <label>Sujet
-            <select name="sujet">
-              <option>Commande personnelle</option>
-              <option>Commande pour une équipe / entreprise</option>
-              <option>Question sur une commande</option>
-              <option>Autre</option>
-            </select>
-          </label>
-          <label>Message<textarea name="message" rows="6" required></textarea></label>
-          <div><button class="btn btn-terra" type="submit">Envoyer →</button></div>
-          <p class="notice" id="contact-ok" hidden>Merci ! Site de démonstration : votre message n'a pas été envoyé.</p>
-        </form>
+          <aside class="contact-aside" data-reveal>
+            <div class="contact-aside-art"><img src="logo-sweat.svg" alt="Illustration d'un sweat Atelier Ourlet"></div>
+            <p class="eyebrow">Une réponse immédiate</p>
+            <h2>Besoin d'aide <em>maintenant ?</em></h2>
+            <p>Notre assistant de démonstration peut vous aider à découvrir les produits, les personnalisations et les étapes d'un devis.</p>
+            <button class="btn btn-ghost" type="button" data-open-chat>Discuter avec l'assistant →</button>
+            <small>Atelier Ourlet est une marque fictive. Aucun message ni commande réels.</small>
+          </aside>
+        </div>
       </div>
     </section>
   </main>
@@ -60,7 +76,7 @@
     <div class="wrap">
       <div class="cols">
         <div>
-          <a class="logo" href="index.html">Atelier <em>Ourlet</em></a>
+          <a class="logo" href="index.html"><img class="brand-mark" src="logo-sweat.svg" alt="" aria-hidden="true"> <span>Atelier <em>Ourlet</em></span></a>
           <p>Vêtements brodés sur mesure. Marque fictive créée pour une démonstration d'assistant IA.</p>
         </div>
         <div><h4>Boutique</h4><ul><li><a href="boutique.html">Tous les produits</a></li><li><a href="personnalisations.html">Personnalisations</a></li><li><a href="entreprises.html">Entreprises</a></li></ul></div>
