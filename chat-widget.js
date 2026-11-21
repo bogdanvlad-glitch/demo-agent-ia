@@ -4,7 +4,8 @@
 // rends le chat public, puis colle l'URL du webhook ci-dessous.
 const CW_CONFIG = {
   brand: 'Atelier Ourlet',
-  n8nWebhookUrl: '' // ex. 'https://ton-instance.app.n8n.cloud/webhook/xxxx/chat'
+  n8nWebhookUrl: '', // Ancienne intégration n8n (optionnelle)
+  apiEndpoint: '' // URL du Cloudflare Worker terminée par /chat; JAMAIS une clé API
 };
 
 (function () {
@@ -60,7 +61,7 @@ const CW_CONFIG = {
         </div>
       </div>
     </div>
-    <div class="cw-legal">Assistant IA de démonstration : il peut faire des erreurs. ${CW_CONFIG.brand} est une marque fictive, aucune donnée n'est envoyée.</div>
+    <div class="cw-legal">Assistant de démonstration : il peut faire des erreurs. ${CW_CONFIG.brand} est une marque fictive. Si une API IA est activée, les messages sont transmis au prestataire d'IA pour générer les réponses. Aucun devis ni commande réelle.</div>
     <div class="cw-chips">
       <button type="button">Délais de livraison</button>
       <button type="button">Commande pour une équipe</button>
@@ -139,8 +140,9 @@ const CW_CONFIG = {
 
   // ---------- Logique ----------
   let busy = false;
-  let quote = null; // demande en cours
+  let quote = null; // demande en cours (mode démonstration)
   const sessionId = 'demo-' + Math.random().toString(36).slice(2);
+  const history = []; // Historique réduit, envoyé uniquement si un endpoint IA est configuré.
 
   async function send(raw) {
     const text = (raw || '').trim();
@@ -150,7 +152,32 @@ const CW_CONFIG = {
     busy = true;
     const t = typing();
     let answer;
-    if (CW_CONFIG.n8nWebhookUrl) {
+    if (CW_CONFIG.apiEndpoint) {
+      try {
+        const nextHistory = [...history, { role: 'user', text }].slice(-12);
+        const controller = new AbortController();
+        const timeout = setTimeout(() => controller.abort(), 18000);
+        let response;
+        try {
+          response = await fetch(CW_CONFIG.apiEndpoint, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ messages: nextHistory }),
+            signal: controller.signal
+          });
+        } finally {
+          clearTimeout(timeout);
+        }
+        const json = await response.json();
+        if (!response.ok) throw new Error(json.error || 'Service indisponible');
+        if (!json.output || typeof json.output !== 'string') throw new Error('Réponse invalide');
+        history.push({ role: 'user', text }, { role: 'model', text: json.output });
+        while (history.length > 12) history.shift();
+        answer = { text: json.output };
+      } catch (err) {
+        answer = { text: 'Le service IA est temporairement indisponible. Veuillez réessayer dans quelques instants. (Aucun message n’a été envoyé à l’atelier.)' };
+      }
+    } else if (CW_CONFIG.n8nWebhookUrl) {
       try {
         const r = await fetch(CW_CONFIG.n8nWebhookUrl, {
           method: 'POST', headers: { 'Content-Type': 'application/json' },
