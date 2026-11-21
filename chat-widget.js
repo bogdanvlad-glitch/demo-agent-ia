@@ -5,7 +5,7 @@
 const CW_CONFIG = {
   brand: 'Atelier Ourlet',
   n8nWebhookUrl: '', // Ancienne intégration n8n (optionnelle)
-  apiEndpoint: '' // URL du Cloudflare Worker terminée par /chat; JAMAIS une clé API
+  apiEndpoint: 'https://atelier-ourlet-chat.exacodeofficial.workers.dev/chat' // Endpoint public, sans clé secrète
 };
 
 (function () {
