@@ -100,7 +100,53 @@ const CW_CONFIG = {
     d.className = 'cw-msg ' + (who === 'user' ? 'cw-user' : 'cw-bot');
     if (who === 'user') d.textContent = text;
     else d.innerHTML = formatBot(text);
-    body.appendChild(d); scroll();
+    body.appendChild(d);
+    if (who !== 'user') addProducts(text);
+    scroll();
+  }
+
+  // ---------- Visuels produits dans le chat ----------
+  // Quand l'IA parle d'un article, on affiche sa carte (mêmes visuels que la boutique).
+  const PRODUCTS = [
+    { name: 'T-shirt brodé', price: 29, re: /\bt-?shirts?\b|\btee-?shirts?\b/, g: { type: 'tshirt', color: '#f0e4cf', motif: 'Noé' } },
+    { name: 'Sweat brodé', price: 49, re: /\bsweats?(?:-shirts?)?\b(?!\s+a\s+capuche)|\bpulls?\b/, g: { type: 'sweat', color: '#c7c9c4', motif: 'Léa' } },
+    { name: 'Hoodie brodé', price: 59, re: /\bhoodies?\b|\bcapuche\b/, g: { type: 'hoodie', color: '#2f5045', motif: '♥', thread: '#e9a27f' } },
+    { name: 'Casquette brodée', price: 25, re: /\bcasquettes?\b/, g: { type: 'cap', color: '#b4532a', motif: '★', thread: '#f6f1e9' } },
+    { name: 'Tote bag brodé', price: 19, re: /\btote(?:[ -]?bags?)?\b/, g: { type: 'tote', color: '#e6d6b8', motif: 'logo', thread: '#243d35' } },
+    { name: 'Tablier brodé', price: 35, re: /\btabliers?\b/, g: { type: 'apron', color: '#7d9b82', motif: 'Chef', thread: '#f6f1e9' } }
+  ];
+  function addProducts(text) {
+    const s = text.toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '');
+    const found = PRODUCTS
+      .map(p => ({ p, at: s.search(p.re) }))
+      .filter(x => x.at >= 0)
+      .sort((a, b) => a.at - b.at)
+      .map(x => x.p);
+    if (!found.length) return;
+    const row = document.createElement('div');
+    row.className = 'cw-products';
+    found.forEach(p => {
+      const a = document.createElement('a');
+      a.className = 'cw-prod';
+      a.href = 'boutique.html';
+      const g = document.createElement('div');
+      g.className = 'g';
+      g.dataset.type = p.g.type;
+      g.dataset.color = p.g.color;
+      g.dataset.motif = p.g.motif;
+      if (p.g.thread) g.dataset.thread = p.g.thread;
+      g.setAttribute('aria-label', p.name);
+      const name = document.createElement('span');
+      name.className = 'cw-prod-name';
+      name.textContent = p.name;
+      const price = document.createElement('span');
+      price.className = 'cw-prod-price';
+      price.textContent = p.price + ' €';
+      a.append(g, name, price);
+      row.appendChild(a);
+    });
+    body.appendChild(row);
+    if (window.renderGarments) window.renderGarments(row);
   }
   function typing() {
     const d = document.createElement('div');
