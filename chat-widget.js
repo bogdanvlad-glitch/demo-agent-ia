@@ -45,11 +45,11 @@ const CW_CONFIG = {
         </div>
       </div>
     </div>
-    <div class="cw-legal">Assistant de démonstration : il peut faire des erreurs. Atelier Ourlet est une marque fictive.</div>
     <form class="cw-form" autocomplete="off">
       <input type="text" placeholder="Posez une question…" aria-label="Votre message" maxlength="500">
       <button type="submit" aria-label="Envoyer" disabled>${ICONS.send}</button>
-    </form>`;
+    </form>
+    <div class="cw-legal">Assistant de démonstration : il peut faire des erreurs. Atelier Ourlet est une marque fictive.</div>`;
 
   document.body.append(launcher, panel);
   if (window.renderGarments) window.renderGarments(panel);
