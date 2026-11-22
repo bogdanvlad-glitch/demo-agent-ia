@@ -190,6 +190,37 @@ const CW_CONFIG = {
     body.appendChild(d); scroll();
     return d;
   }
+  // ---------- Boutons de réponse (questions à choix) ----------
+  // L'IA peut terminer son message par : [[choix: Option 1 | Option 2 | Option 3]]
+  // La bulle retire cette ligne du texte et l'affiche en boutons cliquables.
+  function parseChoices(text) {
+    const re = /\[\[\s*choix\s*:\s*([^\]]+?)\s*\]\]/gi;
+    let last = null, m;
+    while ((m = re.exec(text))) last = m;
+    const clean = text.replace(re, '').replace(/\s+$/, '');
+    if (!last) return { clean, choices: [] };
+    const choices = last[1].split('|').map(s => s.trim()).filter(s => s && s.length <= 40).slice(0, 4);
+    return { clean, choices };
+  }
+  function showChoices(choices) {
+    const row = document.createElement('div');
+    row.className = 'cw-choices';
+    row.setAttribute('role', 'group');
+    row.setAttribute('aria-label', 'Réponses suggérées');
+    choices.forEach(c => {
+      const b = document.createElement('button');
+      b.type = 'button';
+      b.textContent = c;
+      b.addEventListener('click', () => send(c));
+      row.appendChild(b);
+    });
+    body.appendChild(row);
+    scroll();
+  }
+
+  // Boutons de départ, visibles dès l'ouverture (fonctionnent sans modifier le Worker)
+  showChoices(['Voir les prix', 'Commande pour une équipe', 'Délais de livraison', 'Personnaliser un vêtement']);
+
   // ---------- Gemini uniquement ----------
   let busy = false;
   const history = [];
@@ -198,6 +229,7 @@ const CW_CONFIG = {
     if (!text || busy) return;
     input.value = '';
     sendBtn.disabled = true;
+    body.querySelectorAll('.cw-choices').forEach(c => c.remove()); // les anciens choix disparaissent
     addMsg(text, 'user');
     busy = true;
     const indicator = typing();
@@ -223,7 +255,9 @@ const CW_CONFIG = {
       history.push({ role: 'user', text }, { role: 'model', text: data.output });
       while (history.length > 12) history.shift();
       indicator.remove();
-      await addBotTyped(data.output);
+      const { clean, choices } = parseChoices(data.output);
+      await addBotTyped(clean);
+      if (choices.length) showChoices(choices);
     } catch (error) {
       addMsg('Le service IA est momentanément indisponible. Réessayez dans quelques instants.', 'bot');
     } finally {
