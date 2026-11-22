@@ -1,7 +1,8 @@
 // Cloudflare Worker for Atelier Ourlet Gemini chat demo.
 // Store GEMINI_API_KEY as an encrypted Worker secret. Never put it in GitHub Pages.
 // Public demo endpoint, protected by two rate limits (see wrangler.toml).
-const ALLOWED_ORIGIN = "https://bogdanvlad-glitch.github.io";
+// Sites autorisés à utiliser la bulle (GitHub Pages et Vercel).
+const ALLOWED_ORIGINS = ["https://bogdanvlad-glitch.github.io", "https://demo-agent-ia.vercel.app"];
 const MODEL = "gemini-3.1-flash-lite";
 const FALLBACK_MODEL = "gemini-3.5-flash-lite"; // modèle de secours si le principal échoue (recommandé par Google)
 const CF_MODEL = "@cf/meta/llama-3.3-70b-instruct-fp8-fast"; // Workers AI : secours rapide chez Cloudflare, sans clé
@@ -25,24 +26,26 @@ RÉCAPITULATIF DE DEVIS : dès que tu connais article, quantité exacte, personn
 Exemple : [[devis: Article=Sweat brodé | Quantité=30 | Personnalisation=Logo sur le cœur | Date=15 janvier | Estimation=1 249,50 € (−15 %)]]
 Ce message-là ne contient pas de ligne [[choix: …]]. N'écris le récapitulatif qu'une fois par demande (ou de nouveau si le client modifie un élément). N'explique jamais ce format.`;
 const headers = {
-  "Access-Control-Allow-Origin": ALLOWED_ORIGIN,
   "Access-Control-Allow-Methods": "POST, OPTIONS",
   "Access-Control-Allow-Headers": "Content-Type",
   "Access-Control-Max-Age": "86400",
   "Cache-Control": "no-store",
   "Content-Type": "application/json; charset=utf-8"
 };
-const respond = (body, status = 200) => new Response(JSON.stringify(body), { status, headers });
 export default {
   async fetch(request, env) {
+    const origin = request.headers.get("Origin");
+    const allowed = ALLOWED_ORIGINS.includes(origin);
+    const h = { ...headers, "Access-Control-Allow-Origin": allowed ? origin : ALLOWED_ORIGINS[0], "Vary": "Origin" };
+    const respond = (body, status = 200) => new Response(JSON.stringify(body), { status, headers: h });
     const url = new URL(request.url);
     if (url.pathname !== "/chat") return respond({ error: "Not found" }, 404);
     if (request.method === "OPTIONS") {
-      if (request.headers.get("Origin") !== ALLOWED_ORIGIN) return respond({ error: "Forbidden" }, 403);
-      return new Response(null, { status: 204, headers });
+      if (!allowed) return respond({ error: "Forbidden" }, 403);
+      return new Response(null, { status: 204, headers: h });
     }
     if (request.method !== "POST") return respond({ error: "Method not allowed" }, 405);
-    if (request.headers.get("Origin") !== ALLOWED_ORIGIN) return respond({ error: "Forbidden origin" }, 403);
+    if (!allowed) return respond({ error: "Forbidden origin" }, 403);
     if (!env.GEMINI_API_KEY) return respond({ error: "Worker secret is not configured" }, 503);
     // Anti-abus : limite par visiteur (adresse IP, jamais stockée) puis limite globale qui protège le quota Gemini.
     const ip = request.headers.get("CF-Connecting-IP") || "inconnu";

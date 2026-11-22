@@ -1,0 +1,5 @@
+# Fichiers du Worker Cloudflare : inutiles pour le site statique
+cloudflare-worker.js
+wrangler.toml
+GEMINI_SETUP.md
+.wrangler
