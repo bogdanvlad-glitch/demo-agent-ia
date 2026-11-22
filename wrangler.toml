@@ -1,0 +1,27 @@
+# Configuration du Worker Cloudflare de la bulle de chat (aucun secret ici).
+# Déploiement : npx wrangler deploy
+# La clé GEMINI_API_KEY est un secret stocké chez Cloudflare, jamais dans ce dépôt.
+name = "atelier-ourlet-chat"
+main = "cloudflare-worker.js"
+compatibility_date = "2025-09-01"
+workers_dev = true
+preview_urls = false
+keep_vars = true
+
+# Par visiteur : 10 messages par minute (une vraie conversation en fait 2 à 4).
+[[ratelimits]]
+name = "VISITOR_LIMITER"
+namespace_id = "2001"
+
+  [ratelimits.simple]
+  limit = 10
+  period = 60
+
+# Pour tout le site : 40 messages par minute, pour protéger le quota gratuit Gemini.
+[[ratelimits]]
+name = "GLOBAL_LIMITER"
+namespace_id = "2002"
+
+  [ratelimits.simple]
+  limit = 40
+  period = 60

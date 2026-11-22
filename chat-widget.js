@@ -314,7 +314,9 @@ const CW_CONFIG = {
       }
       const data = await response.json();
       if (!response.ok || !data.output || typeof data.output !== 'string') {
-        throw new Error(data.error || 'Réponse indisponible');
+        const err = new Error(data.error || 'Réponse indisponible');
+        if (response.status === 429 && data.error) err.userMessage = data.error; // message clair en cas de limite atteinte
+        throw err;
       }
       history.push({ role: 'user', text }, { role: 'model', text: data.output });
       while (history.length > 12) history.shift();
@@ -323,7 +325,7 @@ const CW_CONFIG = {
       await addBotTyped(clean);
       if (choices.length) showChoices(choices);
     } catch (error) {
-      addMsg('Le service IA est momentanément indisponible. Réessayez dans quelques instants.', 'bot');
+      addMsg(error.userMessage || 'Le service IA est momentanément indisponible. Réessayez dans quelques instants.', 'bot');
     } finally {
       indicator.remove();
       busy = false;

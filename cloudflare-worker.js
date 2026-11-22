@@ -1,6 +1,6 @@
 // Cloudflare Worker for Atelier Ourlet Gemini chat demo.
 // Store GEMINI_API_KEY as an encrypted Worker secret. Never put it in GitHub Pages.
-// This is a public demo endpoint: before wider public use add bot protection/rate limiting.
+// Public demo endpoint, protected by two rate limits (see wrangler.toml).
 const ALLOWED_ORIGIN = "https://bogdanvlad-glitch.github.io";
 const MODEL = "gemini-3.1-flash-lite";
 const SYSTEM = `Tu es l'assistant IA de démonstration de l'Atelier Ourlet, une MARQUE FICTIVE de vêtements personnalisés brodés à Lyon.
@@ -38,6 +38,16 @@ export default {
     if (request.method !== "POST") return respond({ error: "Method not allowed" }, 405);
     if (request.headers.get("Origin") !== ALLOWED_ORIGIN) return respond({ error: "Forbidden origin" }, 403);
     if (!env.GEMINI_API_KEY) return respond({ error: "Worker secret is not configured" }, 503);
+    // Anti-abus : limite par visiteur (adresse IP, jamais stockée) puis limite globale qui protège le quota Gemini.
+    const ip = request.headers.get("CF-Connecting-IP") || "inconnu";
+    if (env.VISITOR_LIMITER) {
+      const { success } = await env.VISITOR_LIMITER.limit({ key: "ip:" + ip });
+      if (!success) return respond({ error: "Vous envoyez beaucoup de messages d'affilée. Patientez une minute avant de réessayer." }, 429);
+    }
+    if (env.GLOBAL_LIMITER) {
+      const { success } = await env.GLOBAL_LIMITER.limit({ key: "global" });
+      if (!success) return respond({ error: "L'assistant est très sollicité en ce moment. Réessayez dans une minute." }, 429);
+    }
     const size = Number(request.headers.get("content-length") || 0);
     if (size > 25000) return respond({ error: "Payload too large" }, 413);
     let input;
