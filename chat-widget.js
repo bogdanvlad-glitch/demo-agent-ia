@@ -105,6 +105,41 @@ const CW_CONFIG = {
     scroll();
   }
 
+  // ---------- Écriture progressive (effet « en train d'écrire ») ----------
+  // La réponse arrive en entier, puis s'affiche mot par mot, comme si l'assistant tapait.
+  const reduceMotion = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  function addBotTyped(text) {
+    return new Promise(resolve => {
+      const d = document.createElement('div');
+      d.className = 'cw-msg cw-bot';
+      body.appendChild(d);
+      const finish = () => {
+        d.innerHTML = formatBot(text);
+        addProducts(text);
+        scroll();
+        resolve();
+      };
+      if (reduceMotion) return finish();
+      const tokens = text.match(/\S+\s*/g) || [text];
+      let i = 0, shown = '';
+      (function step() {
+        const n = Math.random() < 0.35 ? 2 : 1; // parfois deux mots d'un coup
+        for (let k = 0; k < n && i < tokens.length; k++) shown += tokens[i++];
+        const nearBottom = body.scrollHeight - body.scrollTop - body.clientHeight < 60;
+        // Pendant l'écriture, on masque les * pas encore refermés.
+        d.innerHTML = formatBot(shown).replace(/\*/g, '');
+        if (nearBottom) scroll();
+        if (i < tokens.length) {
+          const last = tokens[i - 1] || '';
+          const pause = /[.!?:]\s*$/.test(last) ? 180 : /\n/.test(last) ? 140 : 0; // petite pause en fin de phrase
+          setTimeout(step, 25 + Math.random() * 45 + pause);
+        } else {
+          finish();
+        }
+      })();
+    });
+  }
+
   // ---------- Visuels produits dans le chat ----------
   // Quand l'IA parle d'un article, on affiche sa carte (mêmes visuels que la boutique).
   const PRODUCTS = [
@@ -187,7 +222,8 @@ const CW_CONFIG = {
       }
       history.push({ role: 'user', text }, { role: 'model', text: data.output });
       while (history.length > 12) history.shift();
-      addMsg(data.output, 'bot');
+      indicator.remove();
+      await addBotTyped(data.output);
     } catch (error) {
       addMsg('Le service IA est momentanément indisponible. Réessayez dans quelques instants.', 'bot');
     } finally {
