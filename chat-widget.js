@@ -73,9 +73,73 @@ const CW_CONFIG = {
   launcher.addEventListener('click', open);
   panel.querySelector('.cw-close').addEventListener('click', close);
   expandBtn.addEventListener('click', () => {
+    panel.style.width = ''; panel.style.height = ''; // le bouton reprend la main sur une taille réglée à la souris
+    saveSize(null);
     const big = panel.classList.toggle('cw-big');
     expandBtn.innerHTML = big ? ICONS.shrink : ICONS.expand;
     expandBtn.setAttribute('aria-label', big ? 'Rétrécir' : 'Agrandir');
+  });
+
+  // ---------- Redimensionner la fenêtre à la souris ----------
+  // La bulle est ancrée en bas à droite : on tire le bord haut, le bord gauche ou le coin haut-gauche.
+  const SIZE_KEY = 'cw-size';
+  const MIN_W = 320, MIN_H = 380;
+  function clampSize(w, h) {
+    const maxW = window.innerWidth - 32, maxH = window.innerHeight - 48;
+    return [Math.round(Math.max(MIN_W, Math.min(w, maxW))), Math.round(Math.max(MIN_H, Math.min(h, maxH)))];
+  }
+  function saveSize(size) {
+    try { size ? localStorage.setItem(SIZE_KEY, JSON.stringify(size)) : localStorage.removeItem(SIZE_KEY); } catch (e) {}
+  }
+  function applySize(w, h) {
+    [w, h] = clampSize(w, h);
+    panel.style.width = w + 'px';
+    panel.style.height = h + 'px';
+    return [w, h];
+  }
+  try {
+    const saved = JSON.parse(localStorage.getItem(SIZE_KEY) || 'null');
+    if (saved && window.innerWidth > 520) applySize(saved[0], saved[1]);
+  } catch (e) {}
+
+  [['top', 'ns-resize'], ['left', 'ew-resize'], ['corner', 'nwse-resize']].forEach(([edge, cursor]) => {
+    const h = document.createElement('div');
+    h.className = 'cw-rz cw-rz-' + edge;
+    h.setAttribute('aria-hidden', 'true');
+    h.addEventListener('pointerdown', e => {
+      if (window.innerWidth <= 520 || e.button !== 0) return;
+      e.preventDefault();
+      const r = panel.getBoundingClientRect();
+      const start = { x: e.clientX, y: e.clientY, w: r.width, h: r.height };
+      panel.classList.remove('cw-big');
+      expandBtn.innerHTML = ICONS.expand;
+      expandBtn.setAttribute('aria-label', 'Agrandir');
+      panel.classList.add('cw-resizing');
+      document.documentElement.style.cursor = cursor;
+      try { h.setPointerCapture(e.pointerId); } catch (err) {}
+      let last = [start.w, start.h];
+      const move = ev => {
+        const w = edge === 'top' ? start.w : start.w + (start.x - ev.clientX);
+        const hh = edge === 'left' ? start.h : start.h + (start.y - ev.clientY);
+        last = applySize(w, hh);
+      };
+      const up = () => {
+        h.removeEventListener('pointermove', move);
+        h.removeEventListener('pointerup', up);
+        h.removeEventListener('pointercancel', up);
+        panel.classList.remove('cw-resizing');
+        document.documentElement.style.cursor = '';
+        saveSize(last);
+      };
+      h.addEventListener('pointermove', move);
+      h.addEventListener('pointerup', up);
+      h.addEventListener('pointercancel', up);
+    });
+    panel.appendChild(h);
+  });
+  // Si la fenêtre du navigateur rétrécit, la bulle reste dans l'écran
+  window.addEventListener('resize', () => {
+    if (panel.style.width) applySize(parseFloat(panel.style.width), parseFloat(panel.style.height));
   });
   document.addEventListener('keydown', e => { if (e.key === 'Escape' && !panel.hidden) close(); });
   document.querySelectorAll('[data-open-chat]').forEach(el => el.addEventListener('click', e => { e.preventDefault(); open(); }));
