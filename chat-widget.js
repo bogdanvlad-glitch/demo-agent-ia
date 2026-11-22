@@ -85,10 +85,21 @@ const CW_CONFIG = {
 
   // ---------- Affichage ----------
   function scroll() { body.scrollTop = body.scrollHeight; }
+  // Affiche proprement le Markdown simple renvoyé par l'IA (**gras**, listes « * »).
+  // Le texte est échappé AVANT la mise en forme : aucun HTML venant de l'IA n'est exécuté.
+  function formatBot(text) {
+    const esc = s => s.replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+    return esc(text)
+      .replace(/^\s*[*-]\s+/gm, '• ')
+      .replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>')
+      .replace(/\*(.+?)\*/g, '$1')
+      .replace(/\n{3,}/g, '\n\n');
+  }
   function addMsg(text, who) {
     const d = document.createElement('div');
     d.className = 'cw-msg ' + (who === 'user' ? 'cw-user' : 'cw-bot');
-    d.textContent = text;
+    if (who === 'user') d.textContent = text;
+    else d.innerHTML = formatBot(text);
     body.appendChild(d); scroll();
   }
   function typing() {
