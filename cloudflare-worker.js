@@ -3,6 +3,8 @@
 // Public demo endpoint, protected by two rate limits (see wrangler.toml).
 const ALLOWED_ORIGIN = "https://bogdanvlad-glitch.github.io";
 const MODEL = "gemini-3.1-flash-lite";
+const FALLBACK_MODEL = "gemini-3.5-flash-lite"; // modèle de secours si le principal échoue (recommandé par Google)
+const CF_MODEL = "@cf/meta/llama-3.3-70b-instruct-fp8-fast"; // Workers AI : secours rapide chez Cloudflare, sans clé
 const SYSTEM = `Tu es l'assistant IA de démonstration de l'Atelier Ourlet, une MARQUE FICTIVE de vêtements personnalisés brodés à Lyon.
 Tu parles français, avec un ton accueillant, naturel, précis et concis. Ne prétends pas être humain.
 Tu renseignes les visiteurs sur le catalogue, les broderies, les tarifs et les délais fictifs ci-dessous uniquement.
@@ -66,26 +68,83 @@ export default {
     if (messages.some(m => !m.role || !m.parts[0].text.trim()) || messages.at(-1).role !== "user") {
       return respond({ error: "Invalid chat format" }, 400);
     }
+    // Gemini (offre gratuite) est parfois saturé ou bloqué. Stratégie :
+    // 1. on interroge Gemini ; 2. s'il n'a pas répondu en 2,5 s, on lance en parallèle Llama chez Cloudflare ;
+    // 3. la première bonne réponse gagne ; 4. si les deux échouent, dernier essai sur le Gemini de secours.
+    const started = Date.now();
+    let lastStatus = 502;
+    const served = (model, text) => { console.log(JSON.stringify({ served_by: model, ms: Date.now() - started })); return respond({ output: text.slice(0, 3500), via: model.startsWith('@cf/') ? 'cloudflare' : 'gemini' }); };
+    const tagged = (model, p) => p.then(r => { if (r.text) return { model, text: r.text }; lastStatus = r.status; throw r; });
+    const gemini = tagged(MODEL, askGemini(MODEL, env.GEMINI_API_KEY, messages));
+    let settled = false;
+    gemini.then(() => { settled = true; }, () => {});
+    const backup = new Promise(r => setTimeout(r, 2500)).then(() => {
+      if (settled) throw { status: 200 }; // Gemini a déjà répondu : pas de secours inutile
+      return tagged(CF_MODEL, askCloudflare(env, messages));
+    });
     try {
-      const api = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${MODEL}:generateContent`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json", "x-goog-api-key": env.GEMINI_API_KEY },
-        body: JSON.stringify({
-          systemInstruction: { parts: [{ text: SYSTEM }] },
-          contents: messages,
-          generationConfig: { temperature: 0.45, maxOutputTokens: 420 }
-        })
-      });
-      if (!api.ok) {
-        const status = api.status === 429 ? 429 : 502;
-        return respond({ error: status === 429 ? "Limite de requêtes atteinte. Réessayez plus tard." : "Le service IA est momentanément indisponible." }, status);
-      }
-      const payload = await api.json();
-      const text = payload.candidates?.[0]?.content?.parts?.map(p => p.text || "").join("").trim();
-      if (!text) return respond({ error: "Aucune réponse de l'IA" }, 502);
-      return respond({ output: text.slice(0, 3500) });
-    } catch {
-      return respond({ error: "Impossible de contacter le service IA." }, 502);
+      const first = await Promise.any([gemini, backup]);
+      return served(first.model, first.text);
+    } catch (e) { /* les deux ont échoué */ }
+    if (Date.now() - started < 11500) {
+      const last = await askGemini(FALLBACK_MODEL, env.GEMINI_API_KEY, messages);
+      if (last.text) return served(FALLBACK_MODEL, last.text);
+      lastStatus = last.status;
     }
+    return respond(lastStatus === 429
+      ? { error: "L'assistant est très sollicité en ce moment. Réessayez dans une minute." }
+      : { error: "Le service IA est momentanément indisponible. Réessayez dans quelques instants." },
+      lastStatus === 429 ? 429 : 502);
   }
 };
+
+async function askGemini(model, key, messages) {
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), 5000);
+  try {
+    const api = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json", "x-goog-api-key": key },
+      body: JSON.stringify({
+        systemInstruction: { parts: [{ text: SYSTEM }] },
+        contents: messages,
+        generationConfig: { temperature: 0.45, maxOutputTokens: 420 }
+      }),
+      signal: controller.signal
+    });
+    if (!api.ok) {
+      const detail = (await api.text().catch(() => "")).slice(0, 300);
+      console.log(JSON.stringify({ gemini_error: api.status, model, detail }));
+      return { status: api.status };
+    }
+    const payload = await api.json();
+    const text = payload.candidates?.[0]?.content?.parts?.map(p => p.text || "").join("").trim();
+    if (!text) console.log(JSON.stringify({ gemini_empty: true, model, finish: payload.candidates?.[0]?.finishReason }));
+    return text ? { text } : { status: 502 };
+  } catch (e) {
+    console.log(JSON.stringify({ gemini_exception: String(e && e.name || e), model }));
+    return { status: 504 };
+  } finally {
+    clearTimeout(timer);
+  }
+}
+
+// Secours Workers AI (Cloudflare) : mêmes instructions, format de messages « chat ».
+async function askCloudflare(env, messages) {
+  if (!env.AI) return { status: 503 };
+  const chat = [{ role: "system", content: SYSTEM }].concat(
+    messages.map(m => ({ role: m.role === "model" ? "assistant" : "user", content: m.parts[0].text }))
+  );
+  try {
+    const result = await Promise.race([
+      env.AI.run(CF_MODEL, { messages: chat, max_tokens: 700, temperature: 0.45 }, { rejectIfBusy: true }),
+      new Promise((_, reject) => setTimeout(() => reject(new Error("timeout")), 7000))
+    ]);
+    const text = (result?.choices?.[0]?.message?.content ?? result?.response ?? "").toString().trim();
+    if (!text) console.log(JSON.stringify({ cf_empty: true, keys: Object.keys(result || {}) }));
+    return text ? { text } : { status: 502 };
+  } catch (e) {
+    console.log(JSON.stringify({ cf_error: String(e && e.message || e).slice(0, 200) }));
+    return { status: 503 };
+  }
+}

@@ -8,6 +8,10 @@ workers_dev = true
 preview_urls = false
 keep_vars = true
 
+# IA de secours hébergée par Cloudflare (Workers AI, quota gratuit quotidien).
+[ai]
+binding = "AI"
+
 # Par connexion internet : 20 messages par minute (une conversation en fait 2 à 4 ;
 # marge pour plusieurs personnes derrière la même connexion, ex. un bureau).
 [[ratelimits]]
