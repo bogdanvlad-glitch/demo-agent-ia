@@ -2,7 +2,7 @@
 // Store GEMINI_API_KEY as an encrypted Worker secret. Never put it in GitHub Pages.
 // This is a public demo endpoint: before wider public use add bot protection/rate limiting.
 const ALLOWED_ORIGIN = "https://bogdanvlad-glitch.github.io";
-const MODEL = "gemini-2.5-flash-lite";
+const MODEL = "gemini-3.1-flash-lite";
 const SYSTEM = `Tu es l'assistant IA de démonstration de l'Atelier Ourlet, une MARQUE FICTIVE de vêtements personnalisés brodés à Lyon.
 Tu parles français, avec un ton accueillant, naturel, précis et concis. Ne prétends pas être humain.
 Tu renseignes les visiteurs sur le catalogue, les broderies, les tarifs et les délais fictifs ci-dessous uniquement.
