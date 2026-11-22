@@ -172,14 +172,14 @@ const CW_CONFIG = {
   // ---------- Écriture progressive (effet « en train d'écrire ») ----------
   // La réponse arrive en entier, puis s'affiche mot par mot, comme si l'assistant tapait.
   const reduceMotion = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-  function addBotTyped(text) {
+  function addBotTyped(text, opts = {}) {
     return new Promise(resolve => {
       const d = document.createElement('div');
       d.className = 'cw-msg cw-bot';
       body.appendChild(d);
       const finish = () => {
         d.innerHTML = formatBot(text);
-        addProducts(text);
+        if (opts.products !== false) addProducts(text);
         scroll();
         resolve();
       };
@@ -254,6 +254,57 @@ const CW_CONFIG = {
     body.appendChild(d); scroll();
     return d;
   }
+  // ---------- Récapitulatif « ce que reçoit l'atelier » ----------
+  // L'IA termine la demande par : [[devis: Article=Sweat | Quantité=30 | Personnalisation=Logo | Date=15 janvier | Estimation=1 249,50 €]]
+  // La bulle retire cette ligne et affiche la demande telle que le commerçant la recevrait.
+  function parseDevis(text) {
+    const re = /\[\[\s*devis\s*:\s*([^\]]+?)\s*\]\]/gi;
+    let last = null, m;
+    while ((m = re.exec(text))) last = m;
+    const clean = text.replace(re, '').replace(/\s+$/, '');
+    if (!last) return { clean, fields: null };
+    const fields = last[1].split('|').map(part => {
+      const k = part.indexOf('=');
+      if (k < 1) return null;
+      return [part.slice(0, k).trim().slice(0, 30), part.slice(k + 1).trim().slice(0, 120)];
+    }).filter(f => f && f[0] && f[1]).slice(0, 7);
+    return { clean, fields: fields.length >= 2 ? fields : null };
+  }
+  function showDevis(fields) {
+    return new Promise(resolve => {
+      const card = document.createElement('div');
+      card.className = 'cw-devis';
+      const now = new Date();
+      const time = now.toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' });
+      card.innerHTML = `
+        <div class="cw-devis-top">
+          <span class="cw-devis-from">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="m3 7 9 6 9-6"/></svg>
+            Boîte mail de l'atelier
+          </span>
+          <span class="cw-devis-time"></span>
+        </div>
+        <div class="cw-devis-title">Nouvelle demande de devis</div>
+        <div class="cw-devis-sub">Reçue via l'assistant du site · prête à traiter</div>
+        <dl></dl>
+        <div class="cw-devis-foot"><span class="cw-devis-pill">À traiter</span><span>Aperçu de démonstration : rien n'est envoyé.</span></div>`;
+      card.querySelector('.cw-devis-time').textContent = "Aujourd'hui, " + time;
+      const dl = card.querySelector('dl');
+      fields.forEach(([k, v]) => {
+        const dt = document.createElement('dt'); dt.textContent = k;
+        const dd = document.createElement('dd'); dd.textContent = v;
+        if (/estim|total|prix/i.test(k)) { dt.className = dd.className = 'cw-devis-total'; }
+        dl.append(dt, dd);
+      });
+      const label = document.createElement('div');
+      label.className = 'cw-devis-label';
+      label.textContent = "Voici ce que l'atelier recevrait dans sa boîte mail :";
+      body.append(label, card);
+      scroll();
+      setTimeout(resolve, reduceMotion ? 0 : 450);
+    });
+  }
+
   // ---------- Boutons de réponse (questions à choix) ----------
   // L'IA peut terminer son message par : [[choix: Option 1 | Option 2 | Option 3]]
   // La bulle retire cette ligne du texte et l'affiche en boutons cliquables.
@@ -321,8 +372,10 @@ const CW_CONFIG = {
       history.push({ role: 'user', text }, { role: 'model', text: data.output });
       while (history.length > 12) history.shift();
       indicator.remove();
-      const { clean, choices } = parseChoices(data.output);
-      await addBotTyped(clean);
+      const quote = parseDevis(data.output);
+      const { clean, choices } = parseChoices(quote.clean);
+      await addBotTyped(clean, { products: !quote.fields });
+      if (quote.fields) await showDevis(quote.fields);
       if (choices.length) showChoices(choices);
     } catch (error) {
       addMsg(error.userMessage || 'Le service IA est momentanément indisponible. Réessayez dans quelques instants.', 'bot');
