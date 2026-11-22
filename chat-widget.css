@@ -79,7 +79,7 @@
 }
 
 /* Cartes produits affichées dans le chat */
-.cw-products { display: flex; gap: 10px; overflow-x: auto; padding: 2px 2px 6px; align-self: stretch; scrollbar-width: thin; }
+.cw-products { flex: none; display: flex; gap: 10px; overflow-x: auto; padding: 2px 2px 6px; align-self: stretch; scrollbar-width: thin; }
 .cw-prod {
   flex: none; width: 124px; background: #fff; border: 1px solid #e2d9ca; border-radius: 16px; padding: 8px 8px 10px;
   text-decoration: none; color: #1d2b26; display: flex; flex-direction: column; gap: 4px;
