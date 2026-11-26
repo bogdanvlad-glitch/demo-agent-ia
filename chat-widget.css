@@ -150,3 +150,8 @@
   .cw-pol { width: 74px; font-size: 9.5px; }
   .cw-pol.p2 { top: 34px; }
 }
+
+/* Bouton Chat en verre liquide (classe ajoutée seulement si l'effet WebGL démarre) */
+.cw-launcher.cw-glass { background: transparent; color: #1d2b26; box-shadow: none; text-shadow: 0 1px 1px rgba(255,255,255,.6); }
+.cw-launcher.cw-glass > span, .cw-launcher.cw-glass > svg { position: relative; z-index: 1; }
+.cw-launcher.cw-glass.cw-glass-dark { color: #fff; text-shadow: 0 1px 3px rgba(0,0,0,.55); }
